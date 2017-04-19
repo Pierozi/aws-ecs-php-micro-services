@@ -1,0 +1,3 @@
+services/*/vendor
+sercices/*/config/*.ini
+.idea
