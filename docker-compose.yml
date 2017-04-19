@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: docker/dev.Dockerfile
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./services/auth:/var/www/html
+

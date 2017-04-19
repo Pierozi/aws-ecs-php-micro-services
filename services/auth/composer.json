@@ -1,0 +1,26 @@
+{
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/Pierozi/Crudy.git"
+    }
+  ],
+  "name": "pierozi/aws-ecs-php-micro-service-auth",
+  "version": "0.1.2",
+  "authors": [
+    {
+      "name": "Pierre Tomasina",
+      "email": "tomasina@plab.io"
+    }
+  ],
+  "require": {
+    "plab/crudy": "~0.1.0",
+    "hoa/protocol": "1.17.01.14",
+    "aws/aws-sdk-php": "^3.25"
+  },
+  "autoload": {
+    "psr-4": {
+      "Continuous\\MicroServiceDemo\\Auth\\Api\\": "api/"
+    }
+  }
+}

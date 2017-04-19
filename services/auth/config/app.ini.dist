@@ -1,0 +1,8 @@
+[general]
+env=${ENV}
+
+[aws]
+key=${AWS_KEY}
+secret=${AWS_SECRET}
+region=${AWS_REGION}
+dynamo_prefix_table=${AWS_DYNAMO_PREFIX_TABLE}
