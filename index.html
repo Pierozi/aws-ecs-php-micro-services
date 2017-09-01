@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Deploy PHP MicroService on AWS ECS with ContinuousPHP</title>
+  <meta http-equiv="content-type" content="text/html;       charset=utf-8" />
+  <meta http-equiv="content-type" content="text/javascript; charset=utf-8" />
+  <meta http-equiv="content-type" content="text/css;        charset=utf-8" />
+
+  <link type="text/css" href="./viewer/dist/viewer.css" rel="stylesheet" />
+
+  <style>
+    section {
+      background-image: url("./viewer/Image/phpbe.png");
+    }
+    note {
+      display: none;
+    }
+
+    .primary-fill {
+        fill: #4AA79C;
+    }
+    svg text {
+        font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<section>
+    <br /><br /><br />
+    <h1 style="text-align:center; width:100%">PHP MicroService<br />on AWS ECS<br />deployed with ContinuousPHP</h2>
+
+  <div class="tcenter">
+    <p class="break"><small><time datetime="2016-09-05">Meetup PHP Brussels<br />Pierre Tomasina<br />19/04/2017</time></small></p>
+  </div>
+</section>
+
+<section>
+    <h1>Introduction / Context</h1>
+    <ul>
+        <li>PHP</li>
+        <li>AWS</li>
+        <li>DOCKER</li>
+        <li>CI / CD</li>
+    </ul>
+</section>
+
+<section>
+  <h1>What is a Service ?</h1>
+  <ul>
+    <li>Docker Compose Service</li>
+    <li>AWS ECS Service</li>
+    <li>PHP Service</li>
+  </ul>
+</section>
+
+<section>
+    <h1>Traditional PHP Architecture</h1>
+    <div style="text-align:center;">
+       <img src="micro-service-tradi.png" />
+    </div>
+</section>
+
+<section>
+    <h1>PHP Micro Service Oriented Architecture</h1>
+    <div style="text-align:center;">
+     <img src="micro-service.png" />
+    </div>
+</section>
+
+<section>
+    <h1>Traditional AWS Web Infrastructure</h1>
+    <div style="text-align:center;">
+     <img src="tradi-webinfra.png" />
+    </div>
+</section>
+
+<section>
+    <h1>ECS Web Infrastructure</h1>
+    <div style="text-align:center;">
+     <img src="ecs-web-infra.png" />
+    </div>
+</section>
+
+<section>
+    <h1>Infrastructure As a Code</h1>
+    <ul>
+        <li>Keep Control</li>
+        <li>Automated build Container</li>
+        <li>Automated build Production Infrastructure (Cloudformation)</li>
+        <li>Continuous Deployment of container</li>
+    </ul>
+</section>
+
+<section>
+    <h1>Development Workflow</h1>
+	<b>docker-compose up --build</b>
+	<pre style="font-size:0.6em"><code class="language-docker">
+version: "3"
+
+services:
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: docker/dev.Dockerfile
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./services/auth:/var/www/html
+
+  instore:
+    build:
+      context: ./services/instore
+      dockerfile: docker/dev.Dockerfile
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./services/instore:/var/www/html
+
+  warehouse:
+    build:
+      context: ./services/warehouse
+      dockerfile: docker/dev.Dockerfile
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./services/warehouse:/var/www/html
+     </code></pre>
+</section>
+
+<section style="overflow:hidden">
+    <h1>Dockerfile Dev</h1>
+    <pre>
+    <code class="language-docker">
+FROM php:7.1-apache
+
+RUN ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
+
+# Install last update and php extension
+RUN apt-get update && apt-get install -y \
+    git \
+    vim \
+    bzip2 \
+    zip \
+    libbz2-dev \
+    libmcrypt-dev \
+    libicu-dev \
+    && docker-php-ext-configure mysqli \
+    && docker-php-ext-install mysqli pdo_mysql bz2 mcrypt intl
+
+# Enable Apache Rewrite module
+RUN a2enmod rewrite
+
+COPY docker/vhost.conf /etc/apache2/sites-available/000-default.conf
+
+CMD ["apache2-foreground"]
+	</code>
+</section>
+
+<section>
+    <h1>Dockerfile Prod</h1>
+    <pre>
+    <code class="language-docker">
+# Insert the application into the container
+RUN rm -rf /var/www/html && mkdir -p /var/www/html/vendor /var/www/html/public /var/www/html/api /var/www/html/config
+COPY continuousphp.package composer.json /var/www/html/
+COPY api /var/www/html/api
+COPY config /var/www/html/config
+COPY public /var/www/html/public
+COPY vendor /var/www/html/vendor
+
+RUN rm -rf /var/www/html/docker
+
+CMD ["apache2-foreground"]
+    </code>
+    </pre>
+</section>
+
+<section>
+    <h1>ECS</h1>
+    <ul>
+        <li>Task defintion</li>
+        <li>Service</li>
+        <li>Task</li>
+        <li>ECS Agent in EC2</li>
+        <li>Cluster</li>
+        <li>Attachment to ALB</li>
+    </ul>
+</section>
+
+<section>
+    <h1>Healthcheck</h1>
+
+    <ul>
+        <li>PHP endpoint dedicated to healthcheck</li>
+        <li>ALB healthcheck draining</li>
+        <li>Be careful of Headers restriction <br>(Server Http Accept: */*)</li>
+    </ul>
+</section>
+
+<section>
+  <br><br><br>
+  <h1 style="text-align:center; width:100%">Thank you very much!</h1>
+  <br><br>
+  <p style="text-align:center;">
+    https://github.com/Pierozi/aws-ecs-php-micro-services/tree/ecs/auth
+  </p>
+</section>
+
+<div id="progress-bar"></div>
+
+<script src="./viewer/dist/viewer.js"></script>
+<script src="./viewer/dist/Prism.hoa.js"></script>
+
+<svg viewBox="0 0 0 0" version="1.1"><defs><radialGradient fy="10%" fx="50%" r="100%" cy="50%" cx="50%" id="boxFill"><stop stop-color="#8ec33d" offset="5%"></stop><stop stop-color="#508106" offset="95%"></stop></radialGradient><filter id="shadow"><feColorMatrix values="0" type="saturate" result="saturateOut" in="SourceGraphic"></feColorMatrix><feGaussianBlur stdDeviation="4" result="blurOut" in="saturateOut"></feGaussianBlur><feBlend mode="normal" in2="blurOut" in="SourceGraphic"></feBlend></filter><marker orient="auto" markerHeight="10" markerWidth="12" markerUnits="strokeWidth" refY="3" refX="0" id="arrow"><path d="M 0,0 L 0,6 7,3 z"></path></marker></defs></svg>
+
+</body>
+</html>
